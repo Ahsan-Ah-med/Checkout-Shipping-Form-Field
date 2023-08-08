@@ -1,0 +1,27 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+name = "shipping-address-status"
+client_id = "8f55b9d981a311e2027ab00a54aac8f7"
+application_url = "https://coating-shake-outlets-data.trycloudflare.com"
+embedded = true
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "write_products"
+
+[auth]
+redirect_urls = [
+  "https://coating-shake-outlets-data.trycloudflare.com/auth/callback",
+  "https://coating-shake-outlets-data.trycloudflare.com/auth/shopify/callback",
+  "https://coating-shake-outlets-data.trycloudflare.com/api/auth/callback"
+]
+
+[webhooks]
+api_version = "2023-07"
+
+[pos]
+embedded = false
+
+[build]
+automatically_update_urls_on_dev = true
+dev_store_url = "icon-amsterdam-2023.myshopify.com"
