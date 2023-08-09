@@ -2,7 +2,7 @@
 
 name = "shipping-address-status"
 client_id = "8f55b9d981a311e2027ab00a54aac8f7"
-application_url = "https://coating-shake-outlets-data.trycloudflare.com"
+application_url = "https://rehabilitation-heard-bottle-rolls.trycloudflare.com"
 embedded = true
 
 [access_scopes]
@@ -11,9 +11,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://coating-shake-outlets-data.trycloudflare.com/auth/callback",
-  "https://coating-shake-outlets-data.trycloudflare.com/auth/shopify/callback",
-  "https://coating-shake-outlets-data.trycloudflare.com/api/auth/callback"
+  "https://rehabilitation-heard-bottle-rolls.trycloudflare.com/auth/callback",
+  "https://rehabilitation-heard-bottle-rolls.trycloudflare.com/auth/shopify/callback",
+  "https://rehabilitation-heard-bottle-rolls.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]

@@ -1182,11 +1182,11 @@
             var dispatcher = resolveDispatcher();
             return dispatcher.useReducer(reducer, initialArg, init);
           }
-          function useRef2(initialValue) {
+          function useRef3(initialValue) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useRef(initialValue);
           }
-          function useEffect3(create, deps) {
+          function useEffect4(create, deps) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useEffect(create, deps);
           }
@@ -1758,12 +1758,12 @@
           exports.useCallback = useCallback2;
           exports.useContext = useContext3;
           exports.useDebugValue = useDebugValue;
-          exports.useEffect = useEffect3;
+          exports.useEffect = useEffect4;
           exports.useImperativeHandle = useImperativeHandle;
           exports.useLayoutEffect = useLayoutEffect;
           exports.useMemo = useMemo3;
           exports.useReducer = useReducer;
-          exports.useRef = useRef2;
+          exports.useRef = useRef3;
           exports.useState = useState3;
           exports.version = ReactVersion;
         })();
@@ -18432,11 +18432,37 @@ ${errorInfo.componentStack}`);
     return useSubscription(localization.country);
   }
 
-  // extensions/address-status/node_modules/@shopify/ui-extensions-react/build/esm/surfaces/checkout/hooks/metafields.mjs
+  // extensions/address-status/node_modules/@shopify/ui-extensions-react/build/esm/surfaces/checkout/hooks/capabilities.mjs
+  function useExtensionCapabilities() {
+    return useSubscription(useApi().extension.capabilities);
+  }
+  function useExtensionCapability(capability) {
+    return useExtensionCapabilities().includes(capability);
+  }
+
+  // extensions/address-status/node_modules/@shopify/ui-extensions-react/build/esm/surfaces/checkout/hooks/buyer-journey.mjs
   var import_react10 = __toESM(require_react(), 1);
+  function useBuyerJourneyIntercept(interceptor) {
+    const api = useApi();
+    if (!("buyerJourney" in api)) {
+      throw new ExtensionHasNoMethodError("buyerJourney", api.extension.target);
+    }
+    const interceptorRef = (0, import_react10.useRef)(interceptor);
+    interceptorRef.current = interceptor;
+    return (0, import_react10.useEffect)(() => {
+      const teardownPromise = api.buyerJourney.intercept((interceptorProps) => interceptorRef.current(interceptorProps));
+      return () => {
+        teardownPromise.then((teardown) => teardown()).catch(() => {
+        });
+      };
+    }, [api.buyerJourney]);
+  }
+
+  // extensions/address-status/node_modules/@shopify/ui-extensions-react/build/esm/surfaces/checkout/hooks/metafields.mjs
+  var import_react11 = __toESM(require_react(), 1);
   function useMetafields(filters) {
     const metaFields = useSubscription(useApi().metafields);
-    return (0, import_react10.useMemo)(() => {
+    return (0, import_react11.useMemo)(() => {
       if (filters) {
         const {
           namespace,
@@ -18485,19 +18511,19 @@ ${errorInfo.componentStack}`);
   }
 
   // extensions/address-status/node_modules/@shopify/ui-extensions-react/build/esm/surfaces/checkout/hooks/translate.mjs
-  var import_react11 = __toESM(require_react(), 1);
+  var import_react12 = __toESM(require_react(), 1);
   function useTranslate() {
     const {
       i18n
     } = useApi();
-    const translate = (0, import_react11.useCallback)((...args) => {
+    const translate = (0, import_react12.useCallback)((...args) => {
       const translation = i18n.translate(...args);
       if (!Array.isArray(translation)) {
         return translation;
       }
       return translation.map((part, index) => {
-        if (/* @__PURE__ */ (0, import_react11.isValidElement)(part)) {
-          return /* @__PURE__ */ (0, import_react11.cloneElement)(part, {
+        if (/* @__PURE__ */ (0, import_react12.isValidElement)(part)) {
+          return /* @__PURE__ */ (0, import_react12.cloneElement)(part, {
             key: index
           });
         }
@@ -18508,16 +18534,45 @@ ${errorInfo.componentStack}`);
   }
 
   // extensions/address-status/src/Checkout.jsx
-  var import_react12 = __toESM(require_react());
+  var import_react13 = __toESM(require_react());
   var import_jsx_runtime4 = __toESM(require_jsx_runtime2());
   var Checkout_default = reactExtension(
-    "purchase.checkout.actions.render-before",
+    "purchase.checkout.delivery-address.render-before",
     () => /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Extension, {})
   );
   function Extension() {
     const translate = useTranslate();
     const { extension: extension2, localization } = useApi();
-    const [countryCode, setCountryCode] = (0, import_react12.useState)("");
+    const [countryCode, setCountryCode] = (0, import_react13.useState)("");
+    const [house, setHouse] = (0, import_react13.useState)("");
+    const [validationError, setValidationError] = (0, import_react13.useState)("");
+    const canBlockProgress = useExtensionCapability("block_progress");
+    const label = canBlockProgress ? "House No" : "House No (optional)";
+    useBuyerJourneyIntercept(({ canBlockProgress: canBlockProgress2 }) => {
+      if (canBlockProgress2 && !ishouseSet()) {
+        return {
+          behavior: "block",
+          reason: "house no is required",
+          perform: (result) => {
+            if (result.behavior === "block") {
+              setValidationError("Enter your house");
+            }
+          }
+        };
+      }
+      return {
+        behavior: "allow",
+        perform: () => {
+          clearValidationErrors();
+        }
+      };
+    });
+    function ishouseSet() {
+      return house !== "";
+    }
+    function clearValidationErrors() {
+      setValidationError("");
+    }
     const makeRequest = () => __async(this, null, function* () {
       try {
         const local = yield useLocalizationCountry();
@@ -18536,7 +18591,7 @@ ${errorInfo.componentStack}`);
       }
     });
     makeRequest_ship();
-    const setHouseNo = useApplyMetafieldsChange();
+    const houseAPi = useApplyMetafieldsChange();
     const houseNo = useMetafield({
       namespace: "custom",
       key: "house"
@@ -18544,11 +18599,15 @@ ${errorInfo.componentStack}`);
     return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(import_jsx_runtime4.Fragment, { children: countryCode === "NL" && /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
       TextField2,
       {
-        label: "House No",
+        label,
         value: houseNo == null ? void 0 : houseNo.value,
-        required: true,
+        required: canBlockProgress,
+        error: !!validationError,
+        helperText: validationError,
+        onInput: clearValidationErrors,
         onChange: (value) => {
-          setHouseNo({
+          setHouse(value);
+          houseAPi({
             type: "updateMetafield",
             namespace: "custom",
             key: "house",
